@@ -7,12 +7,8 @@ const api = require('./api')
 const logger = require('./plugins/logger')
 
 const server = Hapi.server({
-  host: process.env.HOST,
   port: parseInt(process.env.PORT, 10),
   routes: {
-    // files: {
-    //   relativeTo: path.join(__dirname, '..', 'public')
-    // },
     validate: {
       failAction: async (request, h, error) => {
         if (process.env.NODE_ENV === 'production') {
