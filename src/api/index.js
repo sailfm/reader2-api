@@ -1,36 +1,5 @@
-const path = require('path')
 const joi = require('joi')
-const fetch = require('node-fetch')
-const normalizeUrl = require('normalize-url')
-const validUrl = require('../lib/validUrl')
-const { JSDOM } = require('jsdom')
-const Readability = require('readability/Readability')
-
-async function read(url) {
-  // validate URL
-  try {
-    url = normalizeUrl(url)
-    if (!validUrl(url)) throw new Error('Invalid URL')
-  } catch (error) {
-    throw Error(`Invalid URL ${url}`)
-  }
-  // fetch page
-  let text
-  try {
-    const response = await fetch(url)
-    text = await response.text()
-  } catch (error) {
-    throw Error(`Failed to Fetch ${url}`)
-  }
-  // extract article
-  try {
-    const dom = new JSDOM(text, { url })
-    const article = new Readability(dom.window.document).parse()
-    return article
-  } catch (error) {
-    throw Error(`Failed to extract article ${url}`)
-  }
-}
+const read = require('../lib/read')
 
 module.exports = {
   name: 'ApiPlugin',
@@ -40,7 +9,7 @@ module.exports = {
         method: 'GET',
         path: '/favicon.ico',
         handler: (request, h) => {
-          return h.file('public/favicon.ico')
+          return h.file('favicon.ico')
         }
       },
       {
