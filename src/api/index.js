@@ -23,7 +23,6 @@ module.exports = {
         method: 'GET',
         path: '/{params*}',
         handler: async (request, h) => {
-          console.log('params111')
           try {
             const url = request.url.path.substring(1)
             const { title, content } = await read(url)
