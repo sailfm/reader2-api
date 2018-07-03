@@ -1,56 +1,37 @@
-const joi = require('joi')
+const Joi = require('joi')
 const read = require('../lib/read')
+const Boom = require('boom')
+const Duration = require('duration')
 
 module.exports = {
   name: 'ApiPlugin',
   register: async (server, options) => {
     server.route([
       {
-        method: 'GET',
-        path: '/favicon.ico',
-        handler: (request, h) => {
-          return h.file('favicon.ico')
-        }
-      },
-      {
-        method: 'GET',
-        path: '/',
-        handler: (request, h) => {
-          return h.view('index')
-        }
-      },
-      {
-        method: 'GET',
-        path: '/{params*}',
-        handler: async (request, h) => {
-          try {
-            const url = request.url.path.substring(1)
-            const { title, content } = await read(url)
-            return h.view('index', {
-              title: `${title} | `,
-              unsafebody: content,
-              url
-            })
-          } catch (error) {
-            return h.view('index', { unsafebody: `<p>${error.message}</p>` })
-          }
-        }
-      },
-      {
-        method: 'GET',
+        method: 'POST',
         path: '/read',
         handler: async (request, h) => {
-          return h.redirect(`/${request.query.url}`)
+          try {
+            const start = new Date()
+            const { title, content, normalizedUrl } = await read(
+              request.payload.url
+            )
+            return {
+              request_time: start.toISOString(),
+              duration: new Duration(start).toString(1),
+              title,
+              content,
+              normalizedUrl
+            }
+          } catch (error) {
+            return Boom.badRequest(error.message, { url: request.payload.url })
+          }
         },
         options: {
           validate: {
-            query: {
-              mode: joi
-                .string()
-                .valid(['read'])
-                .required(),
-              url: joi.string().required()
-            }
+            payload: Joi.object({
+              url: Joi.string().required()
+            })
           }
         }
       }

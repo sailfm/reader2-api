@@ -6,25 +6,27 @@ const Readability = require('readability/Readability')
 
 module.exports = async function read(url) {
   // validate URL
+  let normalizedUrl
   try {
-    url = normalizeUrl(url)
-    if (!validUrl(url)) throw Error()
+    normalizedUrl = normalizeUrl(url)
+    if (!validUrl(normalizedUrl)) throw Error()
   } catch (error) {
-    throw Error(`Invalid URL ${url}`)
+    throw Error(`Invalid URL ${normalizedUrl}`)
   }
   // fetch page
   let text
   try {
-    const response = await fetch(url)
+    const response = await fetch(normalizedUrl)
     text = await response.text()
   } catch (error) {
-    throw Error(`Failed to Fetch ${url}`)
+    throw Error(`Failed to Fetch ${normalizedUrl}`)
   }
   // extract article
   try {
-    const dom = new JSDOM(text, { url })
+    const dom = new JSDOM(text, { url: normalizedUrl })
     const article = new Readability(dom.window.document).parse()
-    return article
+    if (!article) throw Error()
+    return { normalizedUrl, ...article }
   } catch (error) {
     throw Error(`Failed to extract article ${url}`)
   }

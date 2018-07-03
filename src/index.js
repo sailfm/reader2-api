@@ -1,20 +1,20 @@
 const Hapi = require('hapi')
-const boom = require('boom')
-const path = require('path')
-const inert = require('inert')
-const vision = require('vision')
-const api = require('./api')
+const Boom = require('boom')
 const logger = require('./plugins/logger')
+const api = require('./api')
+const path = require('path')
 
 const server = Hapi.server({
   port: parseInt(process.env.PORT, 10),
   routes: {
-    files: { relativeTo: path.join(__dirname, 'public') },
+    cors: {
+      origin: ['http://localhost:3200', 'http://dawoodjee.com']
+    },
     validate: {
       failAction: async (request, h, error) => {
         if (process.env.NODE_ENV === 'production') {
           request.log('error', error.message)
-          throw boom.badRequest(`Invalid request payload input`)
+          throw Boom.badRequest(`Invalid request payload input`)
         } else {
           request.log('error', error.message)
           throw error
@@ -26,16 +26,7 @@ const server = Hapi.server({
 
 const init = async () => {
   await server.register(logger)
-  await server.register(inert)
   await server.register(api)
-  await server.register(vision)
-  server.views({
-    engines: {
-      html: require('handlebars')
-    },
-    relativeTo: __dirname,
-    path: 'templates'
-  })
   await server.start()
   console.log(`Server running at: ${server.info.uri}`)
 }
